@@ -1,8 +1,10 @@
 from . import app
+
 import os
 import json
 import pymongo
 from flask import jsonify, request, make_response, abort, url_for  # noqa; F401
+
 from pymongo import MongoClient
 from bson import json_util
 from pymongo.errors import OperationFailure
@@ -51,3 +53,7 @@ def parse_json(data):
 ######################################################################
 # INSERT CODE HERE
 ######################################################################
+
+@app.route("/health", methods=["GET"])
+def fetch_health():
+    return jsonify({"status":"OK"})
