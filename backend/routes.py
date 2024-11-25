@@ -4,6 +4,7 @@ import os
 import json
 import pymongo
 from flask import jsonify, request, make_response, abort, url_for  # noqa; F401
+from http import HTTPStatus
 
 from pymongo import MongoClient
 from bson import json_util
@@ -104,6 +105,37 @@ def fetch_song_by_id(id):
     else:
         return jsonify(song), 200
 
+
+@app.route("/song/<int:id>", methods=["DELETE"])
+def delete_song(id):
+    
+    if not id:
+        app.logger.error("Field missing") 
+        return jsonify({"error": "No data provided"}), 400
+    
+    # all data given, test if song present
+    # db_resp_song = get_song_by_id(id)
+    # if not db_resp_song:
+    #     app.logger.error(f"Song with id {id} does not exist.") 
+    #     return jsonify({"message":"song not found"}), 404
+    
+    filter_query = {"id":id}
+        
+    try:
+        db_resp_delete_song = db.songs.delete_one(filter_query)        
+    except Exception as e:
+        app.logger.error(f"Error deleting song with id: {id}: {e}")
+        return jsonify({"error": "Error deleting song."}), 500
+    
+    if db_resp_delete_song.deleted_count == 0:
+        return jsonify({"message": "song not found"}), 404
+    else:
+        # song_deleted = json_util.dumps(db_resp_delete_song)
+        # app.logger.info(f"Song with id: {id} deleted.")
+        return jsonify({}), 204
+
+
+    
 
 @app.route("/song", methods=["POST"])
 def create_song():
