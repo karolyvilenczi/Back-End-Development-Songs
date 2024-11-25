@@ -9,3 +9,9 @@ test_count:
 
 test_songs:
 	curl -X GET -i -w '\n' localhost:5000/song
+
+test_song_with_id_ok:
+	curl -X GET -i -w '\n' localhost:5000/song/1
+
+test_song_with_id_err:
+	curl -X GET -i -w '\n' localhost:5000/song/100

@@ -75,11 +75,35 @@ def fetch_count():
         return jsonify(resp), 200
 
 
+@app.route("/song/<int:id>", methods=["GET"])
+def fetch_song_by_id(id):
+    filter_query = {"id": id}
+    db_resp_song = None
+    
+    try:
+        app.logger.error(f"Looking for song with id {id}.")
+        db_resp_song = db.songs.find_one(filter_query)
+    except Exception as e:
+        app.logger.error(f"Error fetching song with id {id}: {e}")
+        resp = {"message": "Error fetching song"}
+        return jsonify(resp), 404
+
+    if not db_resp_song:
+        return jsonify({"message": "song with id not found"}), 404
+    
+    try:
+        song = json_util.dumps(db_resp_song)
+    except Exception as e:
+        app.logger.error(f"Error serializing mongo response {db_resp_song}: {e}")
+    else:
+        return jsonify(song), 200
+
+
 @app.route("/song", methods=["GET"])
 def fetch_songs():
     filter_query = {}
     try:
-        songs = json_util.dumps(db.songs.find(filter_query))
+        songs = json_util.dumps(db.songs.find(filter_query), default=str)
     except Exception as e:
         app.logger.error(f"Error fetching songs: {e}")
         resp = {"response":"Server error"}
@@ -88,4 +112,3 @@ def fetch_songs():
         resp = {"songs":songs}
         app.logger.info(f"Fetched songs: {songs}")
         return jsonify(resp), 200
-
