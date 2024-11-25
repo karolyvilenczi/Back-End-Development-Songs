@@ -54,6 +54,19 @@ def parse_json(data):
 # INSERT CODE HERE
 ######################################################################
 
+def get_song_by_id(id):
+    filter_query = {"id": id}
+    
+    try:
+        db_resp_song = db.songs.find_one(filter_query)
+    except Exception as e:
+        app.logger.error(f"Error fetching song with id {id}: {e}")
+        return None
+    else:
+        app.logger.info(f"Song with id {id} found.")
+        return db_resp_song
+
+
 @app.route("/health", methods=["GET"])
 def fetch_health():
     return jsonify({"status":"OK"}), 200
@@ -77,26 +90,58 @@ def fetch_count():
 
 @app.route("/song/<int:id>", methods=["GET"])
 def fetch_song_by_id(id):
-    filter_query = {"id": id}
-    db_resp_song = None
     
-    try:
-        app.logger.error(f"Looking for song with id {id}.")
-        db_resp_song = db.songs.find_one(filter_query)
-    except Exception as e:
-        app.logger.error(f"Error fetching song with id {id}: {e}")
-        resp = {"message": "Error fetching song"}
-        return jsonify(resp), 404
-
+    db_resp_song = get_song_by_id(id = id)
+    
     if not db_resp_song:
         return jsonify({"message": "song with id not found"}), 404
-    
+
     try:
         song = json_util.dumps(db_resp_song)
     except Exception as e:
         app.logger.error(f"Error serializing mongo response {db_resp_song}: {e}")
+        return jsonify({"message": "song with id not found"}), 404
     else:
         return jsonify(song), 200
+
+
+@app.route("/song", methods=["POST"])
+def create_song():
+    
+    data = None
+    try:
+        data = request.get_json()
+    except Exception as e:
+        app.logger.error(f"Cannot process request: {e}")
+        return jsonify({"error": "Bad request"}), 400
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    id, title, lyrics = data.get("id"), data.get("title"), data.get("lyrics")
+    if None in [id, title, lyrics]:
+        app.logger.error("Field missing") 
+        return jsonify({"error": "No data provided"}), 400
+    
+    # all data given, test if song present
+    db_resp_song = get_song_by_id(id)
+    if db_resp_song:
+        return jsonify({"Message": f"song with id '{id}' already present"}), 302
+
+    # create if not present
+
+    try:
+        db_resp_new_song = db.songs.insert_one(data)
+    except Exception as e:
+        app.logger.error(f"Error creating song with data\n {data}: {e}")
+        resp = {"message": "Cannot create song"}
+        return jsonify(resp), 500
+    else:
+        # song_created = json_util.dumps(db_resp_new_song)
+        # resp_created = {"inserted id":{"$oid":song_created['id']}}
+        # return jsonify(resp_created), 200
+        return "OK"
+         
 
 
 @app.route("/song", methods=["GET"])
