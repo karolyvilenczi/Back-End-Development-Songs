@@ -112,13 +112,7 @@ def delete_song(id):
     if not id:
         app.logger.error("Field missing") 
         return jsonify({"error": "No data provided"}), 400
-    
-    # all data given, test if song present
-    # db_resp_song = get_song_by_id(id)
-    # if not db_resp_song:
-    #     app.logger.error(f"Song with id {id} does not exist.") 
-    #     return jsonify({"message":"song not found"}), 404
-    
+        
     filter_query = {"id":id}
         
     try:
@@ -130,12 +124,9 @@ def delete_song(id):
     if db_resp_delete_song.deleted_count == 0:
         return jsonify({"message": "song not found"}), 404
     else:
-        # song_deleted = json_util.dumps(db_resp_delete_song)
-        # app.logger.info(f"Song with id: {id} deleted.")
+        app.logger.info(f"Song with id: {id} deleted.")
         return jsonify({}), 204
 
-
-    
 
 @app.route("/song", methods=["POST"])
 def create_song():
@@ -163,18 +154,16 @@ def create_song():
     # create if not present
 
     try:
-        db_resp_new_song = db.songs.insert_one(data)
+        db_resp_new_song = db.songs.insert_one(data)        
     except Exception as e:
         app.logger.error(f"Error creating song with data\n {data}: {e}")
         resp = {"message": "Cannot create song"}
         return jsonify(resp), 500
     else:
-        # song_created = json_util.dumps(db_resp_new_song)
-        # resp_created = {"inserted id":{"$oid":song_created['id']}}
-        # return jsonify(resp_created), 200
-        return "OK"
+        song_created_id = json_util.dumps(db_resp_new_song.inserted_id)
+        resp_created = {"inserted id":song_created_id}
+        return jsonify(resp_created), 201
          
-
 
 @app.route("/song", methods=["GET"])
 def fetch_songs():
