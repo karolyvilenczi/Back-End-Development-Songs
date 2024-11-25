@@ -73,3 +73,19 @@ def fetch_count():
         resp = {"count":songs_count}
         app.logger.info(f"Fetched songs count: {songs_count}")
         return jsonify(resp), 200
+
+
+@app.route("/song", methods=["GET"])
+def fetch_songs():
+    filter_query = {}
+    try:
+        songs = json_util.dumps(db.songs.find(filter_query))
+    except Exception as e:
+        app.logger.error(f"Error fetching songs: {e}")
+        resp = {"response":"Server error"}
+        return jsonify(resp), 404
+    else:
+        resp = {"songs":songs}
+        app.logger.info(f"Fetched songs: {songs}")
+        return jsonify(resp), 200
+

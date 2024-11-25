@@ -6,3 +6,6 @@ test_health:
 
 test_count:
 	curl -X GET -i -w '\n' localhost:5000/count
+
+test_songs:
+	curl -X GET -i -w '\n' localhost:5000/song
