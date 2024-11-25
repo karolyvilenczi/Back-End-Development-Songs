@@ -1,5 +1,8 @@
 run:
-	MONGODB_SERVICE=172.21.237.195:27017 MONGODB_USERNAME=root MONGODB_PASSWORD=kmNVR4si106iQh2BUB1Q0eon flask run --debugger --reload
+	MONGODB_SERVICE=172.21.54.100:27017 MONGODB_USERNAME=root MONGODB_PASSWORD=fccCWi2eS7zDuI8n8Hamu2S5 flask run --debugger --reload
 
 test_health:
 	curl -X GET -i -w '\n' localhost:5000/health
+
+test_count:
+	curl -X GET -i -w '\n' localhost:5000/count

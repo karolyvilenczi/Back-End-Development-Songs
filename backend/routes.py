@@ -56,4 +56,20 @@ def parse_json(data):
 
 @app.route("/health", methods=["GET"])
 def fetch_health():
-    return jsonify({"status":"OK"})
+    return jsonify({"status":"OK"}), 200
+
+
+@app.route("/count", methods=["GET"])
+def fetch_count():
+    
+    filter_query = {}
+    try:
+        songs_count = db.songs.count_documents(filter_query)
+    except Exception as e:
+        app.logger.error(f"Error fetching songs count: {e}")
+        resp = {"response":"Server error"}
+        return jsonify(resp), 404
+    else:
+        resp = {"count":songs_count}
+        app.logger.info(f"Fetched songs count: {songs_count}")
+        return jsonify(resp), 200
