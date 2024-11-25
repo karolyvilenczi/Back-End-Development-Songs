@@ -39,3 +39,9 @@ test_create_song_exists:
 
 # GET, DELETE & POST song 323
 recreate_323: test_create_song_ok test_get_song_with_id_323_ok 	test_delete_song
+
+
+
+# PUT
+test_update_song_1_ok:
+	curl --request PUT -i -w '\n' --url http://localhost:5000/song/1 --header 'Content-Type: application/json' --data '{"lyrics": "yay hey yay yay", "title": "yay song"}'

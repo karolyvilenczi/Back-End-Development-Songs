@@ -178,3 +178,56 @@ def fetch_songs():
         resp = {"songs":songs}
         app.logger.info(f"Fetched songs: {songs}")
         return jsonify(resp), 200
+
+
+
+@app.route("/song/<int:id>", methods=["PUT"])
+def update_song(id):
+
+    if not id:
+        app.logger.error("Field missing") 
+        return jsonify({"error": "No data provided"}), 400
+    
+    # find if exists
+    db_song_found = get_song_by_id(id)
+    if not db_song_found:
+        return jsonify({"Message": f"Song not found"}), 404
+    
+   
+    data = None
+    try:
+        data = request.get_json()
+    except Exception as e:
+        app.logger.error(f"Cannot process request: {e}")
+        return jsonify({"error": "Bad request"}), 400
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    title, lyrics = data.get("title"), data.get("lyrics")
+    if None in [title, lyrics]:
+        app.logger.error("Field missing") 
+        return jsonify({"error": "No data provided"}), 400
+    
+    # update 
+
+    filter_query  = {"id": id} 
+    update_query = {
+        "$set": {
+            "title": title,
+            "lyrics": lyrics
+        }
+    }
+
+    try:
+        db_resp_updated_song = db.songs.update_one(filter_query, update_query)        
+    except Exception as e:
+        app.logger.error(f"Error updating song with data\n {data}: {e}")
+        resp = {"message": "Cannot update song"}
+        return jsonify(resp), 500
+    else:
+        if db_resp_updated_song.modified_count == 0:
+            return jsonify({"message":"song found, but nothing updated"}), 200
+        else:
+            resp_obj = parse_json(db_song_found)
+            return jsonify(resp_obj), 200
